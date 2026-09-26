@@ -1,0 +1,10 @@
+{
+  "name": "vantex-soft",
+  "private": true,
+  "version": "0.0.1",
+  "workspaces": [
+    "shared",
+    "web",
+    "mobile"
+  ]
+}
