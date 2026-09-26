@@ -1,0 +1,3 @@
+-- Baseline migration. Intentionally empty: establishes Flyway history
+-- so every later schema change is a new versioned migration.
+-- Never edit this file once it has run.

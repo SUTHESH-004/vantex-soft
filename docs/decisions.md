@@ -32,7 +32,7 @@ goes in shared/.
 
 ## 2026-09-26 — Stack
 
-**Decision:** Spring Boot 3 (Java 21) + PostgreSQL 16 + React (Vite).
+**Decision:** Spring Boot 4.1 (Java 21) + PostgreSQL 16 + React (Vite).
 **Why:** Building Java/Spring depth deliberately. Postgres over MySQL for
 stronger timestamp/timezone handling — night shifts cross midnight and
 attendance must attribute to the shift's start date.
