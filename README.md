@@ -19,6 +19,10 @@ cd backend && ./mvnw spring-boot:run        # API on :8080
 cd web && npm run dev                       # web on :5173
 ```
 
+## LICENSE
+
+Proprietary software. Viewing only. See LICENSE.
+
 ## Status
 
 Phase 0 — scaffold. Walking skeleton in progress.
