@@ -80,3 +80,7 @@ AGENTS.md
 # Scratch notes you might keep for AI sessions
 .ai/
 ai-notes/
+
+# Vite
+*.local
+web/dist-ssr/
