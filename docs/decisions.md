@@ -48,3 +48,15 @@ on his phone; an arranger may sit at a desk.
 **Rule:** Authorization is enforced in the API only. Clients hide UI for
 convenience, never for security.
 **Cost accepted:** every feature is built twice (web + mobile).
+
+## 2026-09-26 — Testcontainers for integration tests
+
+**Decision:** Tests start their own throwaway PostgreSQL 16 via Testcontainers
+(`@ServiceConnection` bean in `TestcontainersConfiguration`), not the
+docker-compose database.
+**Why:** `mvnw test` no longer depends on remembering `docker compose up`, and
+local runs behave the same as CI. The dev `vantex` database is never touched
+by tests.
+**Rule:** Every `@SpringBootTest` imports `TestcontainersConfiguration` with the
+same annotation set so Spring reuses one context and one container per run.
+**Cost accepted:** Docker daemon must be running; first run pulls images.
