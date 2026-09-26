@@ -4,18 +4,21 @@ Newest first. Record any choice future-me would ask "why?" about.
 
 ---
 
-## 2026-09-26 — Three clients, one API
+## 2026-09-26 — Two clients, one API
 
-**Decision:** React Native (Expo) for arrangers, React web for manager/MD,
-Spring Boot API serving both.
-**Why:** Arrangers need camera, GPS and offline queueing in the field.
-MD needs a wide dashboard. Different devices, different jobs.
-**Rejected:** Single responsive PWA — offline photo queueing is unreliable
-on Android web, and the arranger flow is the core of the product.
-**Risk:** 3x surface area for one developer. Mitigated by strict per-app
-scope and a generated API client in shared/.
-
----
+**Decision:** React Native (Expo) for Android, React (Vite) for web, both
+against a single Spring Boot API. Both clients expose the full feature set;
+access is gated by the user's role, not by device.
+**Why:** People use whatever device is at hand — an MD may check the
+dashboard on his phone, an arranger may sit at a desk. Native Android also
+keeps the door open for camera, GPS and offline marking later, which are
+unreliable on Android web.
+**Rejected:** Single responsive PWA — would remove the option of reliable
+offline and device-hardware features later.
+**Rule:** Authorization is enforced in the API only. Clients hide UI for
+convenience, never for security.
+**Risk:** Every feature is built twice. Mitigated by keeping types, the
+generated API client, and role-to-navigation logic in shared/.
 
 ## 2026-09-26 — Monorepo over split repos
 
@@ -34,3 +37,14 @@ goes in shared/.
 stronger timestamp/timezone handling — night shifts cross midnight and
 attendance must attribute to the shift's start date.
 **Rejected:** Oracle — licensing caps and almost no affordable managed hosting.
+
+## 2026-09-26 — Role-based access, platform-agnostic
+
+**Decision:** Roles (ARRANGER / MANAGER / MD) are enforced, but access is not
+tied to device. Both web and mobile expose the full feature set; each screen
+is gated by the logged-in user's role.
+**Why:** People use whatever device is at hand. An MD may check the dashboard
+on his phone; an arranger may sit at a desk.
+**Rule:** Authorization is enforced in the API only. Clients hide UI for
+convenience, never for security.
+**Cost accepted:** every feature is built twice (web + mobile).
