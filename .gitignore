@@ -1,23 +1,82 @@
-# Java / Maven
+# ===== Java / Maven (backend/) =====
 backend/target/
+backend/.mvn/wrapper/maven-wrapper.jar
 *.class
 
-# Node
+# ===== Node (web/, mobile/, shared/) =====
 node_modules/
 web/dist/
-mobile/.expo/
 shared/dist/
+mobile/.expo/
+mobile/dist/
+mobile/web-build/
+*.tsbuildinfo
 
-# Env & secrets
+# ===== Env & secrets =====
 .env
 .env.*
 !.env.example
 
-# IDE / OS
+# ===== IDE =====
 .idea/
-.vscode/
 *.iml
-.DS_Store
+*.iws
+*.ipr
+.vscode/
+# Eclipse / STS
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings/
+.springBeans
+.sts4-cache/
 
-# Logs
+# ===== OS =====
+.DS_Store
+Thumbs.db
+
+# ===== Logs =====
 *.log
+
+# ===== AI assistants — local only, never committed =====
+# Claude Code
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+**/CLAUDE.md
+**/CLAUDE.local.md
+.mcp.json
+# Cursor
+.cursor/
+.cursorrules
+.cursorignore
+# Windsurf / Codeium
+.windsurf/
+.windsurfrules
+.codeium/
+# GitHub Copilot
+.github/copilot-instructions.md
+.github/instructions/
+.github/prompts/
+# Cline / Roo
+.clinerules
+.clinerules/
+.roo/
+.roomodes
+# Continue
+.continue/
+# Aider
+.aider*
+# Gemini / Codex / generic agents
+.gemini/
+GEMINI.md
+.codex/
+AGENTS.md
+**/AGENTS.md
+# Kiro / Amazon Q
+.kiro/
+.amazonq/
+# Scratch notes you might keep for AI sessions
+.ai/
+ai-notes/
