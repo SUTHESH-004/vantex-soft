@@ -1,0 +1,113 @@
+name: Deploy
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      sha:
+        description: Full commit SHA to deploy (rollback). Its backend image must already exist in GHCR.
+        required: true
+        type: string
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  SHA: ${{ github.event.workflow_run.head_sha || inputs.sha }}
+  IMAGE: ghcr.io/suthesh-004/vantex-backend
+
+jobs:
+  backend:
+    name: Deploy backend
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.SHA }}
+
+      - name: Log in to GHCR
+        if: github.event_name == 'workflow_run'
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/setup-buildx-action@v4
+        if: github.event_name == 'workflow_run'
+
+      - name: Build and push image
+        if: github.event_name == 'workflow_run'
+        uses: docker/build-push-action@v7
+        with:
+          context: backend
+          push: true
+          tags: ${{ env.IMAGE }}:${{ env.SHA }}
+          labels: org.opencontainers.image.source=https://github.com/${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Trigger Render deploy
+        if: env.RENDER_DEPLOY_HOOK_URL != ''
+        run: |
+          IMG_URL=$(jq -rn --arg v "$IMAGE:$SHA" '$v|@uri')
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK_URL&imgURL=$IMG_URL"
+          echo "Render deploy triggered for $IMAGE:$SHA"
+
+      - name: Skip Render (not configured yet)
+        if: env.RENDER_DEPLOY_HOOK_URL == ''
+        run: echo "::notice::RENDER_DEPLOY_HOOK_URL secret not set; image pushed, Render not triggered."
+
+  web:
+    name: Deploy web
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Skip Vercel (not configured yet)
+        if: env.VERCEL_TOKEN == ''
+        run: echo "::notice::VERCEL_TOKEN secret not set; web not deployed."
+
+      - uses: actions/checkout@v7
+        if: env.VERCEL_TOKEN != ''
+        with:
+          ref: ${{ env.SHA }}
+
+      - uses: actions/setup-node@v7
+        if: env.VERCEL_TOKEN != ''
+        with:
+          node-version: "22"
+
+      - name: Pull Vercel settings and env
+        if: env.VERCEL_TOKEN != ''
+        run: npx --yes vercel@60 pull --yes --environment=production --token="$VERCEL_TOKEN"
+
+      - name: Build
+        if: env.VERCEL_TOKEN != ''
+        run: npx --yes vercel@60 build --prod --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        if: env.VERCEL_TOKEN != ''
+        run: npx --yes vercel@60 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
