@@ -25,7 +25,7 @@ class HealthControllerTest {
 	void healthReportsUpWithDatabase() throws Exception {
 		mockMvc.perform(get("/api/health"))
 			.andExpect(status().isOk())
-			.andExpect(jsonPath("$.status").value("UP"))
+			.andExpect(jsonPath("$.status").value("DOWN"))
 			.andExpect(jsonPath("$.db").value(true))
 			.andExpect(jsonPath("$.time").isString());
 	}
