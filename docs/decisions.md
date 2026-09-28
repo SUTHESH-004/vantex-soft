@@ -60,3 +60,23 @@ by tests.
 **Rule:** Every `@SpringBootTest` imports `TestcontainersConfiguration` with the
 same annotation set so Spring reuses one context and one container per run.
 **Cost accepted:** Docker daemon must be running; first run pulls images.
+
+## 2026-09-28 — Hosting: Neon + Render + Vercel, deployed by commit SHA
+
+**Decision:** PostgreSQL 16 on Neon (free tier). Backend runs as a Docker
+image on Render (free web service), pulled from GHCR. Web on Vercel (Hobby).
+`deploy.yml` runs only after CI succeeds on `main`; every backend image is
+tagged with its commit SHA.
+**Why:** All three are free with no card. Render's deploy hook accepts an
+exact image, so rollback = redeploy an older SHA (manual `workflow_dispatch`).
+Images are built on GitHub's amd64 runners — the dev Mac is arm64.
+**Rejected:** Railway (no free tier), Fly.io (card + pay-as-you-go).
+Vercel Git auto-deploy — would deploy commits that failed CI.
+A `latest` tag — can't tell what's running and can't roll back.
+**Rules:** Secrets live only in the Render/Vercel dashboards and GitHub
+Secrets, never in the repo. `VITE_*` variables are public (baked into the JS),
+so never put a secret in one. Allowed browser origins come from
+`CORS_ALLOWED_ORIGINS`.
+**Cost accepted:** Render free tier sleeps after 15 min idle, so the first
+request takes ~30–60s. Neon free compute scales to zero (small wake-up delay).
+Revisit before real users.
