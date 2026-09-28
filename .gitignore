@@ -84,3 +84,6 @@ ai-notes/
 # Vite
 *.local
 web/dist-ssr/
+
+# Vercel CLI local link
+.vercel/
