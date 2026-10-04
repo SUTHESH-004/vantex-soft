@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
     inputs:
       sha:
-        description: Full commit SHA to deploy (rollback). Its backend image must already exist in GHCR.
+        description: Full commit SHA of the backend image to redeploy (rollback). Roll back web with Vercel Instant Rollback.
         required: true
         type: string
 
@@ -73,41 +73,23 @@ jobs:
       - name: Skip Render (not configured yet)
         if: env.RENDER_DEPLOY_HOOK_URL == ''
         run: echo "::notice::RENDER_DEPLOY_HOOK_URL secret not set; image pushed, Render not triggered."
-
   web:
     name: Deploy web
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push')
+      github.event_name == 'workflow_run' &&
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 5
     env:
-      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_DEPLOY_HOOK_URL: ${{ secrets.VERCEL_DEPLOY_HOOK_URL }}
     steps:
+      - name: Trigger Vercel deploy
+        if: env.VERCEL_DEPLOY_HOOK_URL != ''
+        run: |
+          curl -fsS -X POST "$VERCEL_DEPLOY_HOOK_URL"
+          echo "Vercel deploy triggered for main"
+
       - name: Skip Vercel (not configured yet)
-        if: env.VERCEL_TOKEN == ''
-        run: echo "::notice::VERCEL_TOKEN secret not set; web not deployed."
-
-      - uses: actions/checkout@v7
-        if: env.VERCEL_TOKEN != ''
-        with:
-          ref: ${{ env.SHA }}
-
-      - uses: actions/setup-node@v7
-        if: env.VERCEL_TOKEN != ''
-        with:
-          node-version: "22"
-
-      - name: Pull Vercel settings and env
-        if: env.VERCEL_TOKEN != ''
-        run: npx --yes vercel@60 pull --yes --environment=production --token="$VERCEL_TOKEN"
-
-      - name: Build
-        if: env.VERCEL_TOKEN != ''
-        run: npx --yes vercel@60 build --prod --token="$VERCEL_TOKEN"
-
-      - name: Deploy
-        if: env.VERCEL_TOKEN != ''
-        run: npx --yes vercel@60 deploy --prebuilt --prod --token="$VERCEL_TOKEN"
+        if: env.VERCEL_DEPLOY_HOOK_URL == ''
+        run: echo "::notice::VERCEL_DEPLOY_HOOK_URL secret not set; web not deployed."

@@ -70,7 +70,12 @@ tagged with its commit SHA.
 **Why:** All three are free with no card. Render's deploy hook accepts an
 exact image, so rollback = redeploy an older SHA (manual `workflow_dispatch`).
 Images are built on GitHub's amd64 runners — the dev Mac is arm64.
+**Web deploys:** Vercel builds from GitHub, triggered only by a deploy hook
+that `deploy.yml` calls after CI passes on `main`; Git auto-deploy stays off
+(`web/vercel.json`). Web rollback = Vercel Instant Rollback.
 **Rejected:** Railway (no free tier), Fly.io (card + pay-as-you-go).
+Vercel CLI deploys from Actions — Vercel's scoped tokens failed the CLI's
+user lookup ("User not found"); the hook needs no token.
 Vercel Git auto-deploy — would deploy commits that failed CI.
 A `latest` tag — can't tell what's running and can't roll back.
 **Rules:** Secrets live only in the Render/Vercel dashboards and GitHub
